@@ -4,9 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use JWTAuh;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Symfony\Component\HttpFoundation\Reponse;
+use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
+
+    protected $user;
+
+    public function __construct()
+    {
+        $this->user = JWTAuth::parseToken()->authenticate();
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -14,7 +26,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        //
+        return $this->user->products()->get();
     }
 
     /**
@@ -35,7 +47,34 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Validasi data
+        $data = $request->only('name', 'sku', 'price', 'quantity');
+        $validator = validator::make($data, [
+            'name' => 'required|string',
+            'sku' => 'required',
+            'price' => 'required',
+            'quantity' => 'required'
+        ]);
+
+        // Send failed response if request is not valid
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->messages()], 200);
+        }
+
+        // Request is valid, create new product
+        $product = $this->user->products()->create([
+            'name' => $request->name,
+            'sku' => $request->sku,
+            'price' => $request->price,
+            'quantity' => $request->quantity
+        ]);
+
+        // Product created, reutrn success response
+        return reponse()->json([
+            'success' => true,
+            'message' => 'Product created successfully',
+            'data' => $product
+        ], Response::HTTP_OK);
     }
 
     /**

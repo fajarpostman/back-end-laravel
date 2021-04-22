@@ -57,7 +57,7 @@ class ApiController extends Controller
         }
 
         //jika Request valid
-        //cream token
+        //Crean token
         try {
             if (! $token = JWTAuth::attempt($credentials)) {
                 return response()->json([
@@ -72,5 +72,50 @@ class ApiController extends Controller
                     'message' => 'Could not create token.',
                 ], 500);
         }
+
+        // Token created, return with success reponse and JWT token
+
+        return response()->json([
+            'success' => true,
+            'token' => $token,
+        ]);
+    }
+
+    public function logout(Request $request)
+    {
+        // valid credentials
+        $validator = Validator::make($request->only('token'), [
+            'token' => 'required'
+        ]);
+
+        // Kirim response gagal jika tidak valid
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->messages()], 200);
+        }
+
+        // Request valid, lakukan logout
+        try {
+            JWTAuth::invalidate($request->token);
+            return response()->json([
+                'success' => true,
+                'message' => 'User has been logged out'
+            ]);
+        } catch (JWTException $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sorry user cannot be logged out'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function get_user(Request $request)
+    {
+        $this->validate($request, [
+            'token' => 'required'
+        ]);
+
+        $user = JWTAuth::authenticate($request->token);
+
+        return response()->json(['user' => $user]);
     }
 }

@@ -83,9 +83,17 @@ class ProductController extends Controller
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function show(Product $product)
+    public function show($id)
     {
         //
+        $product = $this->user->products()->find($id);
+
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sorry, product not found..'
+            ], 400);
+        }
     }
 
     /**
@@ -108,7 +116,22 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        //
+        // Validate data
+        $data = $request->only('name', 'sku', 'price', 'quantity');
+        $validator = Validator::make($data, [
+            'name' => $request->name,
+            'sku' => $request->sku,
+            'price' => $request->price,
+            'quantity' => $request->quantity
+        ]);
+
+        // Send failed response if request is not valid
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->message()], 200);
+        }
+
+        // Request is valid, update product
+        
     }
 
     /**

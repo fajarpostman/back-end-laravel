@@ -131,7 +131,12 @@ class ProductController extends Controller
         }
 
         // Request is valid, update product
-        
+        $product = $product->update([
+            'name' => $request->name,
+            'sku' => $request->sku,
+            'price' => $request->price,
+            'quantity' => $request->quantity
+        ], Response::HTTP_OK);
     }
 
     /**
@@ -142,6 +147,12 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        //
+        // Delete Product
+        $product->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product deleted Successfully'
+        ], Response::HTTP_OK);
     }
 }
